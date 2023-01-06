@@ -2,3 +2,4 @@ wordcloud
 plotly
 scikit-learn
 nltk
+contractions
