@@ -78,7 +78,7 @@ st.write("- Others")
 st.caption("_We can also visualize the length of sentence for each type of labels._")
 Length_Ratings()
 
-link="""<a href="http://localhost:8501/Predictor" target = "_self">Predictor</a>"""
+link="""<a href="https://limjingyao-sentiment-analysis-on-hotel-reviews-home-7t0775.streamlit.app/Predictor" target = "_self">Predictor</a>"""
 st.write("To better understand customers better, it is crucial to find out whether a review is positive, neutral "
          "or negative to the business. To predict their labels, try it out on the next page - "+link,
          unsafe_allow_html=True)
