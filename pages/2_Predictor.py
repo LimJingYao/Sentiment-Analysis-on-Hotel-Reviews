@@ -118,7 +118,7 @@ else:
     st.subheader('Choose a file:')
     csv_file = st.file_uploader("", label_visibility="collapsed", type='csv')
     if csv_file is not None:
-        csv_file = pd.read_csv(csv_file, encoding="latin-1")
+        csv_file = pd.read_csv(csv_file)
         pred, prob = zip(*csv_file[csv_file.columns[0]].apply(batch_sentiment_predict))
         csv_file['Labels'] = pred
         csv_file['Confidence Level'] = prob
