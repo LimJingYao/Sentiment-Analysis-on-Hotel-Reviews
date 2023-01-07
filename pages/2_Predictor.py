@@ -62,7 +62,7 @@ def color_label(label, color= '#00f900'): # lightgreen
     if label == 'Bad':
         color = 'red'
     elif label == 'OK':
-        color = 'yellow'
+        color = '#BDB76B'
     return f'background-color: {color}'
 
 # content
@@ -89,7 +89,7 @@ if input == 'Single Text':
             output, image = st.columns(2)
             with output:
                 result = single_sentiment_predict(text)
-                st.dataframe(result.style.highlight_max(subset = ['Confidence Level'],axis = 0),
+                st.dataframe(result.style.highlight_max(subset = ['Confidence Level'],axis = 0, color = '#BDB76B'),
                              use_container_width=True)
             with image:
                 index = np.argmax(result["Confidence Level"])
