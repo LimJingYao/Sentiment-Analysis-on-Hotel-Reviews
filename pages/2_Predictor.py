@@ -98,6 +98,14 @@ def NGramGenerator(ngram):
     fig.update_layout(width=660,height=1000,title=dict(text='<b>Top 15 Trigrams for Each Rating Labels</b>', x=0.5, y=0.95))
     st.plotly_chart(fig)
 
+stop_words = nltk.corpus.stopwords.words('english')
+newStopWords = ['hotel','room','golden','sand','del','rio','n','casa','san','juan','stay','go','one','check','clean','night','even','place']
+stop_words.extend(newStopWords)
+
+def cleaning_more_stopwords(text):
+    text = ' '.join([word for word in text.split() if word not in stop_words])
+    return text
+
 # content
 st.set_page_config(page_title="HORESA - Streamlit", page_icon=":hotel:")
 
@@ -189,6 +197,7 @@ else:
             st.header("Word cloud for positive reviews:")
             WordCloudGenerator(csv_file[csv_file['Labels'] == 'Good'].review)
         else:
+            csv_file[csv_file.columns[0]] = csv_file[csv_file.columns[0]].apply(cleaning_more_stopwords)
             NGramGenerator(csv_file)
 
     with st.sidebar:
