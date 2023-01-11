@@ -8,8 +8,13 @@ import contractions
 import pandas as pd
 import streamlit as st
 import plotly.express as px
+import matplotlib.pyplot as plt
+import plotly.graph_objects as go
+from wordcloud import WordCloud
 from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
+from plotly.subplots import make_subplots
+from sklearn.feature_extraction.text import CountVectorizer
 
 # load packages
 nltk.download('stopwords')
@@ -62,8 +67,36 @@ def color_label(label, color= '#00f900'): # lightgreen
     if label == 'Bad':
         color = 'red'
     elif label == 'OK':
-        color = '#BDB76B'
+        color = '#BDB76B' # yellow
     return f'background-color: {color}'
+
+def WordCloudGenerator(data):
+    wordCloud = WordCloud(background_color='white', random_state=1).generate(' '.join(data))
+    fig, ax = plt.subplots()
+    ax.imshow(wordCloud)
+    plt.axis("off")
+    st.pyplot(fig)
+
+def top15_ngram(text):
+    vectorizer = CountVectorizer(ngram_range=(3, 3), max_df=0.8).fit(text)
+    sum_of_words = vectorizer.transform(text).sum(axis=0)
+    words_freq = [(word, sum_of_words[0, index]) for word, index in vectorizer.vocabulary_.items()] # compile data into new variable
+    words_freq = sorted(words_freq, key=lambda x: x[1], reverse=True) # sort based on second column (the sum of words)
+    return words_freq[:15]
+
+def NGramGenerator(ngram):
+    labels = ['Bad', 'OK', 'Good']
+    colors = ['teal', 'lime', 'gold']
+    review = csv_file.columns[0]
+
+    fig = make_subplots(rows=3, cols=1) # create subplots
+    for i in range(3):
+        top15_trigrams = top15_ngram(ngram[ngram['Labels'] == labels[i]].review)[:15] #create N-grams for each label
+        x, y = map(list, zip(*top15_trigrams)) # map data onto x and y
+        fig.add_trace(go.Bar(x=y, y=x, orientation='h', type="bar", name=labels[i], marker=dict(color=colors[i])), i+1, 1) # barplot
+
+    fig.update_layout(width=660,height=1000,title=dict(text='<b>Top 15 Trigrams for Each Rating Labels</b>', x=0.5, y=0.95))
+    st.plotly_chart(fig)
 
 # content
 st.set_page_config(page_title="HORESA - Streamlit", page_icon=":hotel:")
@@ -89,7 +122,7 @@ if input == 'Single Text':
             output, image = st.columns(2)
             with output:
                 result = single_sentiment_predict(text)
-                st.dataframe(result.style.highlight_max(subset = ['Confidence Level'],axis = 0, color = '#BDB76B'),
+                st.dataframe(result.style.highlight_max(subset=['Confidence Level'],axis=0, color="#BDB76B"),
                              use_container_width=True)
             with image:
                 index = np.argmax(result["Confidence Level"])
@@ -134,11 +167,29 @@ else:
             "analyzed_text.csv"
         )
 
-        data_plot = csv_file.groupby('Labels').count().reset_index()
-        fig = px.pie(data_plot, names='Labels', values=csv_file.columns[0], width=450, height=400, hole=.6)
-        fig.update_traces(textinfo='percent+label', marker=dict(colors=['#FFC0CB', '#98FB98', '	#FFEFD5'])) # pink, palegreen, papayawhip
-        fig.update(layout_showlegend=False)
-        st.plotly_chart(fig, theme="streamlit", use_container_width=True)
+        plot = st.radio(
+            "",
+            ["Labels Distribution", "Word Cloud", "N-gram"],
+            horizontal=True,
+            label_visibility="collapsed"
+        )
+
+        if plot == 'Labels Distribution':
+            data_plot = csv_file.groupby('Labels').count().reset_index()
+            fig = px.pie(data_plot, names='Labels', values=csv_file.columns[0], width=450, height=400, hole=.6)
+            fig.update_traces(textinfo='percent+label', marker=dict(colors=['#FFC0CB', '#98FB98', '	#FFEFD5'])) # pink, palegreen, papayawhip
+            fig.update(layout_showlegend=False)
+            st.plotly_chart(fig, theme="streamlit", use_container_width=True)
+        elif plot == "Word Cloud":
+            review = csv_file.columns[0]
+            st.header("Word cloud for negative reviews:")
+            WordCloudGenerator(csv_file[csv_file['Labels'] == 'Bad'].review)
+            st.header("Word cloud for neutral reviews:")
+            WordCloudGenerator(csv_file[csv_file['Labels'] == 'OK'].review)
+            st.header("Word cloud for positive reviews:")
+            WordCloudGenerator(csv_file[csv_file['Labels'] == 'Good'].review)
+        else:
+            NGramGenerator(csv_file)
 
     with st.sidebar:
         st.markdown("Guides:")
