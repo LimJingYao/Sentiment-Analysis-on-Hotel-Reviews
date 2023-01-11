@@ -1,4 +1,5 @@
 # modules
+import nltk
 import pandas as pd
 import streamlit as st
 import plotly.express as px
@@ -13,9 +14,16 @@ processed_data = pd.read_csv("https://raw.githubusercontent.com/LimJingYao/Senti
 processed_data = processed_data.drop(columns=['Unnamed: 0'])
 processed_data = processed_data.dropna(axis=0)
 
+stopwords = nltk.corpus.stopwords.words('english')
+newStopWords = ['hotel','room','golden','sand','del','rio','n','casa','san','juan','stay','go','one','check','clean','night','even','place']
+stopwords.extend(newStopWords)
+
+def cleaning_more_stopwords(text):
+    text = ' '.join([word for word in text.split() if word not in stopwords])
+    return text
+
 def WordCloudGenerator(data):
-    wordCloud = WordCloud(max_words=1000, min_font_size=20, max_font_size=120, background_color='white',
-                      height=600,width=1200, random_state=1).generate(' '.join(data))
+    wordCloud = WordCloud(background_color='white',height=600,width=1200, random_state=1).generate(' '.join(data))
     fig, ax = plt.subplots()
     ax.imshow(wordCloud)
     plt.axis("off")
@@ -30,6 +38,7 @@ def top15_ngram(text):
 
 def NGramGenerator():
     ngram = processed_data.copy()
+    ngram['Reviews'] = ngram['Reviews'].apply(cleaning_more_stopwords)
     labels = ['Bad', 'OK', 'Good']
     colors = ['teal', 'lime', 'gold']
 
@@ -68,7 +77,9 @@ st.write("Nowadays, making travel arrangements and bookings online is one of the
 
 st.write("- Word Cloud")
 st.caption("_This is an example of word cloud showing words which usually can be seen in good reviews._")
-WordCloudGenerator(processed_data[processed_data['Ratings']=='Good'].Reviews)
+wordcloud_data =  processed_data.copy()
+wordcloud_data['Reviews'] = wordcloud_data['Reviews'].apply(cleaning_more_stopwords)
+WordCloudGenerator(wordcloud_data[wordcloud_data['Ratings']=='Good'].Reviews)
 
 st.write("- N-grams")
 st.caption("_These are examples of trigrams showing words which usually can be seen in each type of reviews._")
