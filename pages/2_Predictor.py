@@ -99,7 +99,7 @@ def NGramGenerator(ngram):
     st.plotly_chart(fig)
 
 stop_words = nltk.corpus.stopwords.words('english')
-newStopWords = ['hotel','room','golden','sand','del','rio','n','casa','san','juan','stay','go','one','check','clean','night','even','place']
+newStopWords = ['hotel','room','golden','sand','del','rio','n','casa','san','juan','stay','go','one','check','clean','night','even','place','staff','rooms','Room','time','hotel']
 stop_words.extend(newStopWords)
 
 def cleaning_more_stopwords(text):
@@ -189,13 +189,15 @@ else:
             fig.update(layout_showlegend=False)
             st.plotly_chart(fig, theme="streamlit", use_container_width=True)
         elif plot == "Word Cloud":
-            review = csv_file.columns[0]
+            wordcloud_data = csv_file.copy()
+            wordcloud_data[wordcloud_data.columns[0]] = wordcloud_data[wordcloud_data.columns[0]].apply(cleaning_more_stopwords)
+            review = wordcloud_data.columns[0]
             st.header("Word cloud for negative reviews:")
-            WordCloudGenerator(csv_file[csv_file['Labels'] == 'Bad'].review)
+            WordCloudGenerator(wordcloud_data[wordcloud_data['Labels'] == 'Bad'].review)
             st.header("Word cloud for neutral reviews:")
-            WordCloudGenerator(csv_file[csv_file['Labels'] == 'OK'].review)
+            WordCloudGenerator(wordcloud_data[wordcloud_data['Labels'] == 'OK'].review)
             st.header("Word cloud for positive reviews:")
-            WordCloudGenerator(csv_file[csv_file['Labels'] == 'Good'].review)
+            WordCloudGenerator(wordcloud_data[wordcloud_data['Labels'] == 'Good'].review)
         else:
             csv_file[csv_file.columns[0]] = csv_file[csv_file.columns[0]].apply(cleaning_more_stopwords)
             NGramGenerator(csv_file)
